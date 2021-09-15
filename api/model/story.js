@@ -9,7 +9,8 @@ const storySchema=mongoose.Schema({
     title:String,
     time:Number,
     url:String,
-    id:Number
+    id:Number,
+    vote:[String]
 });
 
 module.exports=mongoose.model("story",storySchema);

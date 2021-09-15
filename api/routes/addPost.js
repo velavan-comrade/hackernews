@@ -75,6 +75,7 @@ router.post("/",(req, res) => {
   router.get("/", (req,res,err) => {
     console.log("in")
     posts.find()
+      .sort({vote:-1})
       .exec()
       .then((docs) => {
         console.log(docs);
@@ -108,8 +109,11 @@ router.post("/",(req, res) => {
   });
 
   router.put("/", (req,res,err) => {
-    console.log("in")
-    posts.find()
+    console.log(req.body.user)
+    var id1=req.body.id;
+    var user=req.body.user
+    //vote length is enough for count
+    posts.updateOne({id:id1},{$push:{vote:user}})
       .exec()
       .then((docs) => {
         console.log(docs);
@@ -118,7 +122,7 @@ router.post("/",(req, res) => {
             status: "success",
             message: "posts Details",
             count: docs.length,
-            data:docs,
+            data:docs
             
           });
         } else {
@@ -142,4 +146,35 @@ router.post("/",(req, res) => {
       });
   });
   
+  router.patch('/',(req,res,err)=>{
+    let id=req.body.id
+    let user=req.body.user
+    posts.updateOne({id:id},{$pull:{vote:user}})
+    .exec()
+    .then((resp)=>{
+      console.log(resp)
+      if(resp.length>0)
+      {
+        res.status(200).json({
+          status:"success",
+          message:"updated",
+          data:resp
+        })
+      }
+      else{
+        res.status(200).json({
+          status:"success",
+          message:"not updated",
+          data:[]
+        })
+      }
+    })
+    .catch((err)=>{
+      res.status(500).json({
+        status:"failure",
+        message:"not updated",
+        error:err
+      })
+    })
+  })
   module.exports=router;

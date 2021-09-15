@@ -4,7 +4,7 @@ const router=express.Router();
 const mongoose=require('mongoose')
 const comment=require('../model/comment')
 const url=require("url");
-
+const post=require('../model/story')
 
 router.get("/:id",(req,res)=>{
   var pid=req.params.id;
@@ -33,7 +33,7 @@ comment.find({parent:pid}).exec().then((docs)=>{
 
 router.post("/",(req, res) => {
 var maxid
-    console.log(req)
+
     comment.findOne().sort({id:-1}).exec().then((data)=>{maxid=data.id;
     const newComment= new comment({
       _id: new mongoose.Types.ObjectId(),
@@ -48,6 +48,7 @@ var maxid
     newComment
       .save()
       .then((result) => {
+        post.update({id:req.body.parent},{$push:{kids:maxid+1}}).exec().then(doc=>console.log("GOT",doc)).catch(err=>console.log(err))
         console.log("Result: ", result);
         res.status(201).json([
           {
@@ -69,6 +70,7 @@ var maxid
           },
         ]);
       })});
+     
   });
 
   router.get("/", (req,res,err) => {
