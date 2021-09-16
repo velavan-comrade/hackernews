@@ -37,7 +37,6 @@ var maxid
     comment.findOne().sort({id:-1}).exec().then((data)=>{maxid=data.id;
     const newComment= new comment({
       _id: new mongoose.Types.ObjectId(),
-
       by: req.body.user,
       text:req.body.text,
       parent:req.body.parent,
@@ -54,7 +53,7 @@ var maxid
           {
             status: "success",
             message: "Comment Added",
-            data: [newComment],
+            data: newComment,
           },
         ]);
       })

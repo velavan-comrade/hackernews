@@ -37,7 +37,7 @@ router.post("/",(req, res) => {
     console.log(maxid)
     const newposts= new posts({
       _id: new mongoose.Types.ObjectId(),
-      by:"vel",
+      by:req.body.user,
       kids:[],
       score:0,
       title:req.body.title,
@@ -75,7 +75,7 @@ router.post("/",(req, res) => {
   router.get("/", (req,res,err) => {
     console.log("in")
     posts.find()
-      .sort({vote:-1})
+      .sort({score:-1})
       .exec()
       .then((docs) => {
         console.log(docs);
@@ -109,13 +109,15 @@ router.post("/",(req, res) => {
   });
 
   router.put("/", (req,res,err) => {
-    console.log(req.body.user)
+    console.log(req.body.score)
     var id1=req.body.id;
     var user=req.body.user
+    var score=req.body.score
     //vote length is enough for count
     posts.updateOne({id:id1},{$push:{vote:user}})
       .exec()
       .then((docs) => {
+        posts.updateOne({id:id1},{score:score}).exec().then((docs)=>{
         console.log(docs);
         if (docs.length > 0) {
           res.status(200).json({
@@ -144,37 +146,65 @@ router.post("/",(req, res) => {
           },
         );
       });
-  });
-  
-  router.patch('/',(req,res,err)=>{
-    let id=req.body.id
-    let user=req.body.user
-    posts.updateOne({id:id},{$pull:{vote:user}})
-    .exec()
-    .then((resp)=>{
-      console.log(resp)
-      if(resp.length>0)
+  }).catch(err=>{
+    res.status(500).json(
       {
-        res.status(200).json({
-          status:"success",
-          message:"updated",
-          data:resp
-        })
-      }
-      else{
-        res.status(200).json({
-          status:"success",
-          message:"not updated",
-          data:[]
-        })
-      }
-    })
-    .catch((err)=>{
-      res.status(500).json({
-        status:"failure",
-        message:"not updated",
-        error:err
+        status: "failure",
+        message: "unable to fetch posts detail",
+        error: err,
+        data: [],
       })
+  });
+})
+
+router.patch("/", (req,res,err) => {
+  console.log(req.body.score)
+  var id1=req.body.id;
+  var user=req.body.user
+  var score=req.body.score
+  //vote length is enough for count
+  posts.updateOne({id:id1},{$pull:{vote:user}})
+    .exec()
+    .then((docs) => {
+      posts.updateOne({id:id1},{score:score}).exec().then((docs)=>{
+      console.log(docs);
+      if (docs.length > 0) {
+        res.status(200).json({
+          status: "success",
+          message: "posts Details",
+          count: docs.length,
+          data:docs
+          
+        });
+      } else {
+        res.status(200).json({
+          status: "success",
+          message: "posts not found",
+          count: 0,
+          data: [],
+        });
+      }
     })
-  })
+    .catch((err) => {
+      res.status(500).json(
+        {
+          status: "failure",
+          message: "unable to fetch posts detail",
+          error: err,
+          data: [],
+        },
+      );
+    });
+}).catch(err=>{
+  res.status(500).json(
+    {
+      status: "failure",
+      message: "unable to fetch posts detail",
+      error: err,
+      data: [],
+    })
+});
+})
+  
+ 
   module.exports=router;
